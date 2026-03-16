@@ -4,127 +4,112 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>龙泉青瓷数字遗产交互系统</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
     
-    <script src="https://unpkg.com/@mediapipe/hands/hands.js"></script>
-    <script src="https://unpkg.com/@mediapipe/camera_utils/camera_utils.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://fastly.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+    <script src="https://fastly.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://fastly.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+    <script src="https://fastly.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+    <script src="https://fastly.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+    <script src="https://fastly.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+    <script src="https://fastly.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+    <script src="https://fastly.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+    
+    <!-- 使用极速镜像 -->
+    <script src="https://fastly.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+    <script src="https://fastly.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
 
     <style>
-        body { margin: 0; background: #000406; color: white; overflow: hidden; font-family: 'Inter', sans-serif; cursor: crosshair; }
-        .glass-panel { background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%); backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .scanline { background: linear-gradient(rgba(18,16,16,0) 50%, rgba(0,255,204,0.02) 50%); background-size: 100% 4px; pointer-events: none; }
-        #sidebar { transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
-        .ok-progress { position: absolute; bottom: 0; left: 0; height: 3px; background: #00ffcc; width: 0%; transition: width 0.1s linear; box-shadow: 0 0 10px #00ffcc; }
-        .circular-progress { position: absolute; bottom: 10px; left: 10px; width: 40px; height: 40px; transform: rotate(-90deg); filter: drop-shadow(0 0 5px #00ffcc); }
-        .circular-progress circle { fill: none; stroke-width: 3; stroke-linecap: round; transition: stroke-dashoffset 0.1s linear; }
-        .bg-circle { stroke: rgba(255,255,255,0.1); }
-        .fg-circle { stroke: #00ffcc; stroke-dasharray: 100; stroke-dashoffset: 100; }
-        /* 强制黑白预览滤镜 */
-        #input_video, #output_canvas { filter: grayscale(100%) brightness(0.8) contrast(1.2); }
+        body { margin: 0; background: #000406; color: white; overflow: hidden; font-family: system-ui, sans-serif; }
+        .glass-panel { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .scanline { background: linear-gradient(rgba(0,255,204,0) 50%, rgba(0,255,204,0.01) 50%); background-size: 100% 4px; pointer-events: none; }
+        #sidebar { transition: transform 0.5s ease; }
+        .ok-progress { position: absolute; bottom: 0; left: 0; height: 3px; background: #00ffcc; width: 0%; transition: width 0.1s; }
+        #input_video { filter: grayscale(1) brightness(0.7); transform: scaleX(-1); }
     </style>
 </head>
-<body onclick="initAudio()">
+<body>
     <div id="canvas-container" class="fixed inset-0 z-0"></div>
-    <div class="fixed inset-0 scanline z-10 opacity-30"></div>
+    <div class="fixed inset-0 scanline z-10 opacity-40"></div>
 
-    <div class="fixed inset-0 pointer-events-none z-20 p-12 flex flex-col justify-between">
-        <header class="flex justify-between items-start">
-            <div>
-                <div class="w-12 h-0.5 bg-yellow-500 mb-4"></div>
-                <h1 class="text-3xl font-extralight tracking-[0.5em] mb-2 uppercase">LONGQUANQC</h1>
-                <h2 class="text-lg font-light tracking-[0.2em] text-white/40">窑火炼千载，一色出天青。</h2>
-            </div>
+    <div class="fixed inset-0 z-20 p-8 flex flex-col justify-between pointer-events-none">
+        <header>
+            <div class="w-10 h-0.5 bg-yellow-500 mb-4"></div>
+            <h1 class="text-2xl font-extralight tracking-[0.4em] uppercase">LONGQUAN CERAMIC</h1>
         </header>
 
-        <footer class="flex justify-between items-end">
-            <div class="glass-panel p-4 rounded-2xl w-48 flex items-center gap-4 border-l-2 border-l-cyan-500 relative overflow-hidden pointer-events-auto">
+        <footer class="flex justify-between items-end pointer-events-auto">
+            <div class="glass-panel p-4 rounded-2xl w-44 flex items-center gap-3 border-l-2 border-l-cyan-500 relative overflow-hidden">
                 <div id="vision-dot" class="w-2 h-2 rounded-full bg-red-600"></div>
-                <div>
-                    <div class="text-[8px] tracking-widest text-white/40 uppercase mb-1">Hand Tracking</div>
-                    <div id="gesture-name" class="text-xs font-medium text-cyan-400">系统初始化...</div>
-                </div>
+                <div id="gesture-name" class="text-[10px] font-medium text-cyan-400 uppercase tracking-widest">Vision Offline</div>
                 <div id="ok-bar" class="ok-progress"></div>
             </div>
             <div class="text-right">
-                <div class="text-[8px] text-white/20 tracking-[0.3em] uppercase mb-1">Current Artifact</div>
-                <div id="asset-name" class="text-sm font-light tracking-[0.2em] text-white/80">星云待机模式</div>
+                <div id="asset-name" class="text-sm font-light tracking-widest text-white/70">NEBULA MODE</div>
             </div>
         </footer>
     </div>
 
-    <div id="sidebar" class="fixed left-0 top-0 h-full w-80 glass-panel border-r border-white/10 z-50 -translate-x-full flex flex-col">
-        <div class="p-10 flex flex-col h-full">
-            <div class="flex justify-between items-center mb-10">
-                <span class="text-xs tracking-[0.4em] text-white/60 uppercase">Archives / 档案库</span>
-                <button onclick="toggleSidebar(false)" class="text-[10px] text-cyan-400 uppercase">Close</button>
-            </div>
-            <div id="model-list" class="flex-1 overflow-y-auto space-y-3 pr-2"></div>
+    <!-- 侧边栏 -->
+    <div id="sidebar" class="fixed left-0 top-0 h-full w-72 glass-panel z-50 -translate-x-full p-8">
+        <div class="flex justify-between items-center mb-8">
+            <span class="text-[10px] tracking-[0.3em] text-white/40 uppercase">Archive</span>
+            <button onclick="toggleSidebar(false)" class="text-[10px] text-cyan-400">CLOSE</button>
         </div>
+        <div id="model-list" class="space-y-2"></div>
     </div>
 
-    <button onclick="toggleSidebar(true)" class="fixed left-6 top-1/2 -translate-y-1/2 z-40 p-5 group">
-        <div class="flex flex-col gap-2">
-            <div class="w-1.5 h-1.5 rounded-full bg-[#7da1a1] group-hover:bg-cyan-400 transition-colors"></div>
-            <div class="w-1.5 h-1.5 rounded-full bg-[#7da1a1] group-hover:bg-cyan-400 transition-colors"></div>
-            <div class="w-1.5 h-1.5 rounded-full bg-[#7da1a1] group-hover:bg-cyan-400 transition-colors"></div>
+    <!-- 侧边栏按钮 -->
+    <button onclick="toggleSidebar(true)" class="fixed left-6 top-1/2 -translate-y-1/2 z-40 p-4 group">
+        <div class="space-y-1.5">
+            <div class="w-1 h-1 rounded-full bg-white/40 group-hover:bg-cyan-400"></div>
+            <div class="w-1 h-1 rounded-full bg-white/40 group-hover:bg-cyan-400"></div>
+            <div class="w-1 h-1 rounded-full bg-white/40 group-hover:bg-cyan-400"></div>
         </div>
     </button>
 
-    <div id="info-panel" class="fixed right-12 top-1/2 -translate-y-1/2 w-96 glass-panel p-10 rounded-[2.5rem] opacity-0 transition-all duration-700 translate-x-12 z-30">
-        <h3 id="panel-title" class="text-2xl font-light mb-6 border-b border-white/10 pb-6 tracking-wide"></h3>
-        <p id="panel-desc" class="text-xs leading-relaxed text-white/60 font-light text-justify italic"></p>
+    <!-- 信息面板 -->
+    <div id="info-panel" class="fixed right-10 top-1/2 -translate-y-1/2 w-80 glass-panel p-8 rounded-[2rem] opacity-0 translate-x-10 transition-all duration-700 z-30">
+        <h3 id="panel-title" class="text-xl font-light mb-4 border-b border-white/10 pb-4"></h3>
+        <p id="panel-desc" class="text-[11px] leading-relaxed text-white/50 italic"></p>
     </div>
 
-    <div class="fixed bottom-12 left-12 w-52 h-36 glass-panel rounded-3xl overflow-hidden z-40">
-        <video id="input_video" class="absolute inset-0 w-full h-full object-cover" playsinline></video>
-        <canvas id="output_canvas" class="absolute inset-0 w-full h-full"></canvas>
-        <svg class="circular-progress" viewBox="0 0 36 36">
-            <circle class="bg-circle" cx="18" cy="18" r="16"></circle>
-            <circle id="ok-circle" class="fg-circle" cx="18" cy="18" r="16"></circle>
-        </svg>
+    <!-- 摄像头画面 -->
+    <div class="fixed bottom-10 left-10 w-48 h-32 glass-panel rounded-2xl overflow-hidden z-40">
+        <video id="input_video" class="w-full h-full object-cover" playsinline></video>
     </div>
 
     <script>
-        const config = { count: 180000 };
+        const config = { count: 150000 }; // 略微减少点数提升 GitHub Pages 兼容性
         let scene, camera, renderer, composer, points;
         let targetPositions = new Float32Array(config.count * 3);
         let targetColors = new Float32Array(config.count * 3);
         let targetSizes = new Float32Array(config.count);
-        let currentRotationY = 0, currentRotationX = 0;
-        let lerpScale = 1.0, targetScale = 1.0;
-        let isDragging = false, lastMouseX = 0, lastMouseY = 0;
-        let models = [], activeModelIndex = -1, okGestureStartTime = null;
+        let curRotY = 0, curRotX = 0, isDrag = false, lastX = 0, lastY = 0;
+        let models = [], activeIndex = -1, okStart = null;
 
-        // 固定档案内容 [cite: 97, 98]
-        const artifactDescriptions = {
-            '龙泉窑舟形砚滴': '这是一件极具文人情趣的文房珍玩。整器巧妙化作一叶扁舟，舟上人物神态生动。釉质紧致，色泽淡雅。作为盛水注墨之器，它不仅体现了宋元时期陶瓷工艺的精湛，更承载了古代士大夫阶层的审美风骨。',
-            '青釉小瓷马': '这件瓷马形态健硕，四足有力，将马的昂扬姿态表现得淋漓尽致。釉色清亮，完美贴合雕塑线条。它虽体积微小，却展现了龙泉窑工匠在微型造像上的卓越功底，是难得一见的动物题材杰作。',
-            '龙泉窑青釉鸡首壶': '此壶集实用与审美于一体，鸡首昂扬，象征着黎明与吉祥。釉色呈现典型的梅子青感，温润莹泽。其造型流线流畅，展现了龙泉窑早期对自然形态的精妙捕捉与釉料烧制的极高水准。',
-            '青釉双鱼耳瓶': '瓶侧双鱼形耳栩栩如生，寓意“年年有余”。釉面清亮剔透，色泽青翠欲滴。器型比例匀称，瓶颈修长，鱼耳的点缀打破了器物的沉静，增添了一抹灵动之气，是龙泉青瓷中的经典制式。',
-            '元代高足杯': '杯体挺拔，杯脚纤细稳重。釉色均匀，色调稳重。作为元代流行的酒具，它融合了游牧文化的豪放与江南瓷文化的精致。杯口微撇，触感细腻，反映了元代龙泉窑远销海内外的繁荣景象。',
-            '南宋青釉香炉': '此炉造型端庄肃穆，模仿青铜礼器。釉面肥厚，开片错落有致，色泽如碧玉般深沉。烟雾从炉中袅袅升起，与青翠的釉色相得益彰，是南宋龙泉窑追求“绚烂之极归于平淡”审美理想的巅峰之作。'
+        const descs = {
+            '龙泉窑舟形砚滴': '巧妙化作一叶扁舟，舟上人物神态生动。釉质紧致，色泽淡雅，体现了文人雅士的审美风骨。',
+            '青釉小瓷马': '形态健硕，四足有力，将马的昂扬姿态表现得淋漓尽致，展现了龙泉窑工匠的微型造像功底。',
+            '鸡首壶': '鸡首昂扬，象征吉祥。釉色呈现典型的梅子青感，温润莹泽，是龙泉窑对自然形态的精妙捕捉。',
+            '青釉双鱼耳瓶': '双鱼形耳栩栩如生，寓意“年年有余”。釉面清亮剔透，色泽青翠欲滴，比例匀称。',
+            '元代高足杯': '融合了游牧文化的豪放与江南瓷文化的精致。杯口微撇，触感细腻，反映了当时的贸易繁荣。',
+            '南宋青釉香炉': '造型端庄肃穆。釉面肥厚，开片错落有致。是南宋龙泉窑追求“绚烂之极归于平淡”的巅峰之作。'
         };
 
         function initApp() {
             scene = new THREE.Scene();
-            camera = new THREE.PerspectiveCamera(25, window.innerWidth / window.innerHeight, 0.1, 2000);
+            camera = new THREE.PerspectiveCamera(25, window.innerWidth / window.innerHeight, 1, 1000);
             camera.position.z = 180;
+            
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             document.getElementById('canvas-container').appendChild(renderer.domElement);
 
             composer = new THREE.EffectComposer(renderer);
             composer.addPass(new THREE.RenderPass(scene, camera));
-            // 恢复强烈辉光 
-            const bloom = new THREE.UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+            const bloom = new THREE.UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.2, 0.4, 0.85);
             composer.addPass(bloom);
 
             const geo = new THREE.BufferGeometry();
@@ -133,19 +118,19 @@
             geo.setAttribute('size', new THREE.BufferAttribute(new Float32Array(config.count), 1));
 
             points = new THREE.Points(geo, new THREE.ShaderMaterial({
-                uniforms: { uRotationY: { value: 0 }, uRotationX: { value: 0 }, uScale: { value: 1.0 } },
+                uniforms: { uRotY: { value: 0 }, uRotX: { value: 0 } },
                 vertexShader: `
                     attribute float size; attribute vec3 color; varying vec3 vColor;
-                    uniform float uRotationY; uniform float uRotationX; uniform float uScale;
+                    uniform float uRotY; uniform float uRotX;
                     void main() {
-                        vColor = color; vec3 pos = position * uScale;
-                        float sy = sin(uRotationY); float cy = cos(uRotationY);
-                        mat2 rotY = mat2(cy, -sy, sy, cy); pos.xz = rotY * pos.xz;
-                        float sx = sin(uRotationX); float cx = cos(uRotationX);
-                        mat2 rotX = mat2(cx, -sx, sx, cx); pos.yz = rotX * pos.yz;
-                        vec4 mvPos = modelViewMatrix * vec4(pos, 1.0);
-                        gl_PointSize = size * (2000.0 / -mvPos.z);
-                        gl_Position = projectionMatrix * mvPos;
+                        vColor = color; vec3 p = position;
+                        float sy = sin(uRotY); float cy = cos(uRotY);
+                        mat2 ry = mat2(cy, -sy, sy, cy); p.xz = ry * p.xz;
+                        float sx = sin(uRotX); float cx = cos(uRotX);
+                        mat2 rx = mat2(cx, -sx, sx, cx); p.yz = rx * p.yz;
+                        vec4 mvP = modelViewMatrix * vec4(p, 1.0);
+                        gl_PointSize = size * (1800.0 / -mvP.z);
+                        gl_Position = projectionMatrix * mvP;
                     }
                 `,
                 fragmentShader: `
@@ -159,105 +144,106 @@
             }));
             scene.add(points);
 
-            // 恢复鼠标拖拽旋转（含上下） [cite: 53]
-            window.addEventListener('mousedown', (e) => { isDragging = true; lastMouseX = e.clientX; lastMouseY = e.clientY; });
-            window.addEventListener('mousemove', (e) => {
-                if (isDragging) {
-                    currentRotationY += (e.clientX - lastMouseX) * 0.005;
-                    currentRotationX += (e.clientY - lastMouseY) * 0.005;
-                    lastMouseX = e.clientX; lastMouseY = e.clientY;
+            window.addEventListener('mousedown', e => { isDrag = true; lastX = e.clientX; lastY = e.clientY; });
+            window.addEventListener('mousemove', e => {
+                if (isDrag) {
+                    curRotY += (e.clientX - lastX) * 0.005;
+                    curRotX += (e.clientY - lastY) * 0.005;
+                    lastX = e.clientX; lastY = e.clientY;
                 }
             });
-            window.addEventListener('mouseup', () => isDragging = false);
+            window.addEventListener('mouseup', () => isDrag = false);
 
-            setNebulaMode();
-            loadArtifacts();
+            setNebula();
+            loadFiles();
             animate();
             initVision();
         }
 
-        function loadArtifacts() {
+        function loadFiles() {
             const loader = new THREE.GLTFLoader();
-            const targets = [
-                { name: '龙泉窑舟形砚滴', file: '龙泉窑舟形砚滴.glb' },
-                { name: '青釉小瓷马', file: '青釉小瓷马.glb' },
-                { name: '龙泉窑青釉鸡首壶', file: '鸡首壶.glb' },
-                { name: '青釉双鱼耳瓶', file: '青釉双鱼耳瓶.glb' },
-                { name: '元代高足杯', file: '元代高足杯.glb' },
-                { name: '南宋青釉香炉', file: '南宋青釉香炉.glb' }
+            // 注意：文件名必须与你仓库中的完全一致
+            const files = [
+                { id: '龙泉窑舟形砚滴', path: '龙泉窑舟形砚滴.glb' },
+                { id: '青釉小瓷马', path: '青釉小瓷马.glb' },
+                { id: '鸡首壶', path: '鸡首壶.glb' },
+                { id: '青釉双鱼耳瓶', path: '青釉双鱼耳瓶.glb' },
+                { id: '元代高足杯', path: '元代高足杯.glb' },
+                { id: '南宋香炉', path: '南宋青釉香炉.glb' }
             ];
-            models = targets.map((t, i) => ({ ...t, loaded: false, group: null, desc: artifactDescriptions[t.name] }));
-            renderModelList();
-            models.forEach((m, i) => {
-                loader.load('./' + m.file, (gltf) => {
-                    m.group = gltf.scene; m.loaded = true; renderModelList();
+
+            const list = document.getElementById('model-list');
+            files.forEach((f, i) => {
+                const btn = document.createElement('div');
+                btn.className = "p-3 bg-white/5 rounded-xl cursor-pointer hover:bg-cyan-500/20 text-[10px] flex justify-between uppercase opacity-50 pointer-events-none";
+                btn.innerHTML = `<span>${f.id}</span><span id="st-${i}">Loading</span>`;
+                btn.onclick = () => reconstruct(i);
+                list.appendChild(btn);
+
+                // 使用 encodeURI 解决 GitHub 中文 404 问题
+                loader.load(encodeURI('./' + f.path), gltf => {
+                    models[i] = { group: gltf.scene, desc: descs[f.id] || '龙泉青瓷瑰宝' };
+                    btn.classList.replace('opacity-50', 'opacity-100');
+                    btn.classList.remove('pointer-events-none');
+                    document.getElementById(`st-${i}`).innerText = 'READY';
                 });
             });
         }
 
-        function renderModelList() {
-            const list = document.getElementById('model-list');
-            list.innerHTML = '';
-            models.forEach((m, i) => {
-                const div = document.createElement('div');
-                div.className = "p-4 bg-white/5 border border-white/5 rounded-2xl cursor-pointer hover:bg-cyan-500/10 transition-all flex justify-between";
-                div.innerHTML = `<span class="text-[10px] uppercase">${m.name}</span><span class="text-[8px] text-cyan-400">${m.loaded?'READY':'...'}</span>`;
-                div.onclick = () => { if(m.loaded) reconstructModel(i); };
-                list.appendChild(div);
-            });
-        }
-
-        function reconstructModel(index) {
-            activeModelIndex = index;
-            const m = models[index];
-            document.getElementById('asset-name').innerText = m.name;
-            document.getElementById('panel-title').innerText = m.name;
+        function reconstruct(idx) {
+            activeIndex = idx;
+            const m = models[idx];
+            document.getElementById('asset-name').innerText = idx === -1 ? 'NEBULA MODE' : 'ARTIFACT ARCHIVE';
+            document.getElementById('panel-title').innerText = Object.keys(descs)[idx] || '文物档案';
             document.getElementById('panel-desc').innerText = m.desc;
-            document.getElementById('info-panel').classList.remove('opacity-0', 'translate-x-12');
-            
+            document.getElementById('info-panel').classList.remove('opacity-0', 'translate-x-10');
+
             const pts = [];
-            m.group.traverse(c => { if(c.isMesh) {
-                const pos = c.geometry.attributes.position;
-                for(let i=0; i<pos.count; i+=2) {
-                    let v = new THREE.Vector3().fromBufferAttribute(pos, i);
-                    v.applyMatrix4(c.matrixWorld); pts.push(v);
+            m.group.traverse(n => {
+                if(n.isMesh) {
+                    const p = n.geometry.attributes.position;
+                    for(let i=0; i<p.count; i+=3) {
+                        let v = new THREE.Vector3().fromBufferAttribute(p, i);
+                        v.applyMatrix4(n.matrixWorld); pts.push(v);
+                    }
                 }
-            }});
+            });
+
             const box = new THREE.Box3().setFromObject(m.group);
+            const size = box.getSize(new THREE.Vector3());
+            const scale = 60 / Math.max(size.x, size.y, size.z);
             const center = box.getCenter(new THREE.Vector3());
-            const scale = 55 / Math.max(box.getSize(new THREE.Vector3()).x, box.getSize(new THREE.Vector3()).y);
 
             for(let i=0; i<config.count; i++) {
                 const i3 = i*3;
-                if(i < config.count * 0.8) {
-                    const p = pts[Math.floor(Math.random()*pts.length)];
-                    targetPositions[i3] = (p.x-center.x)*scale; targetPositions[i3+1] = (p.y-center.y)*scale; targetPositions[i3+2] = (p.z-center.z)*scale;
+                if(i < config.count * 0.85) {
+                    const rv = pts[Math.floor(Math.random() * pts.length)];
+                    targetPositions[i3] = (rv.x - center.x) * scale;
+                    targetPositions[i3+1] = (rv.y - center.y) * scale;
+                    targetPositions[i3+2] = (rv.z - center.z) * scale;
                     targetColors[i3] = 0.4; targetColors[i3+1] = 0.8; targetColors[i3+2] = 0.7;
-                    targetSizes[i] = 0.05;
+                    targetSizes[i] = 0.06;
                 } else {
-                    const r = 120 + Math.random()*50; const a = Math.random()*Math.PI*2;
-                    targetPositions[i3] = Math.cos(a)*r; targetPositions[i3+1] = (Math.random()-0.5)*200; targetPositions[i3+2] = Math.sin(a)*r;
+                    const r = 120 + Math.random() * 40; const a = Math.random() * Math.PI * 2;
+                    targetPositions[i3] = Math.cos(a) * r; targetPositions[i3+1] = (Math.random()-0.5)*180; targetPositions[i3+2] = Math.sin(a) * r;
                     targetColors[i3] = 0.1; targetColors[i3+1] = 0.2; targetColors[i3+2] = 0.3;
-                    targetSizes[i] = 0.03;
+                    targetSizes[i] = 0.02;
                 }
             }
             toggleSidebar(false);
         }
 
-        function setNebulaMode() {
-            // 强化金色粒子 
+        function setNebula() {
             for(let i=0; i<config.count; i++) {
                 const i3 = i*3;
-                const r = 60 + Math.random()*90;
-                const theta = Math.random()*Math.PI*2;
-                const phi = Math.acos(Math.random()*2-1);
-                targetPositions[i3] = r * Math.sin(phi)*Math.cos(theta);
-                targetPositions[i3+1] = r * Math.sin(phi)*Math.sin(theta);
-                targetPositions[i3+2] = r * Math.cos(phi);
-                
-                if(Math.random() > 0.85) { // 金色粒子概率
-                    targetColors[i3] = 1.0; targetColors[i3+1] = 0.85; targetColors[i3+2] = 0.2;
-                    targetSizes[i] = 0.4;
+                const r = 50 + Math.random() * 100;
+                const p = Math.acos(Math.random()*2-1), t = Math.random()*Math.PI*2;
+                targetPositions[i3] = r * Math.sin(p) * Math.cos(t);
+                targetPositions[i3+1] = r * Math.sin(p) * Math.sin(t);
+                targetPositions[i3+2] = r * Math.cos(p);
+                if(Math.random() > 0.9) {
+                    targetColors[i3] = 1.0; targetColors[i3+1] = 0.8; targetColors[i3+2] = 0.2; // 金色
+                    targetSizes[i] = 0.35;
                 } else {
                     targetColors[i3] = 0.2; targetColors[i3+1] = 0.4; targetColors[i3+2] = 0.5;
                     targetSizes[i] = 0.08;
@@ -267,22 +253,22 @@
 
         function animate() {
             requestAnimationFrame(animate);
-            if(!isDragging) currentRotationY += 0.0015;
-            points.material.uniforms.uRotationY.value = currentRotationY;
-            points.material.uniforms.uRotationX.value = currentRotationX;
-            
-            const p = points.geometry.attributes.position.array;
-            const c = points.geometry.attributes.color.array;
-            const s = points.geometry.attributes.size.array;
+            if(!isDrag) curRotY += 0.002;
+            points.material.uniforms.uRotY.value = curRotY;
+            points.material.uniforms.uRotX.value = curRotX;
+
+            const pa = points.geometry.attributes.position.array;
+            const ca = points.geometry.attributes.color.array;
+            const sa = points.geometry.attributes.size.array;
             for(let i=0; i<config.count; i++) {
                 const i3 = i*3;
-                p[i3] += (targetPositions[i3]-p[i3])*0.06;
-                p[i3+1] += (targetPositions[i3+1]-p[i3+1])*0.06;
-                p[i3+2] += (targetPositions[i3+2]-p[i3+2])*0.06;
-                c[i3] += (targetColors[i3]-c[i3])*0.04;
-                c[i3+1] += (targetColors[i3+1]-c[i3+1])*0.04;
-                c[i3+2] += (targetColors[i3+2]-c[i3+2])*0.04;
-                s[i] += (targetSizes[i]-s[i])*0.06;
+                pa[i3] += (targetPositions[i3] - pa[i3]) * 0.07;
+                pa[i3+1] += (targetPositions[i3+1] - pa[i3+1]) * 0.07;
+                pa[i3+2] += (targetPositions[i3+2] - pa[i3+2]) * 0.07;
+                ca[i3] += (targetColors[i3] - ca[i3]) * 0.05;
+                ca[i3+1] += (targetColors[i3+1] - ca[i3+1]) * 0.05;
+                ca[i3+2] += (targetColors[i3+2] - ca[i3+2]) * 0.05;
+                sa[i] += (targetSizes[i] - sa[i]) * 0.07;
             }
             points.geometry.attributes.position.needsUpdate = true;
             points.geometry.attributes.color.needsUpdate = true;
@@ -290,41 +276,49 @@
             composer.render();
         }
 
-        function initVision() {
+        async function initVision() {
             const video = document.getElementById('input_video');
-            const hands = new Hands({ locateFile: (f) => `https://unpkg.com/@mediapipe/hands/${f}` });
-            hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.7 });
-            
-            hands.onResults((res) => {
+            const hands = new Hands({ locateFile: f => `https://fastly.jsdelivr.net/npm/@mediapipe/hands/${f}` });
+            hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.6 });
+
+            hands.onResults(res => {
                 const dot = document.getElementById('vision-dot');
-                const label = document.getElementById('gesture-name');
-                const okBar = document.getElementById('ok-bar');
-                const okCircle = document.getElementById('ok-circle');
+                const lbl = document.getElementById('gesture-name');
+                const bar = document.getElementById('ok-bar');
 
                 if(res.multiHandLandmarks?.length > 0) {
-                    dot.className = "w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_10px_#00ffcc]";
+                    dot.className = "w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_#00ffcc]";
+                    lbl.innerText = "Tracking Active";
                     const lm = res.multiHandLandmarks[0];
-                    const dist = (p1, p2) => Math.hypot(lm[p1].x-lm[p2].x, lm[p1].y-lm[p2].y);
                     
-                    // 恢复手势上下拖拽 [cite: 124]
-                    currentRotationY += (lm[0].x - 0.5) * 0.05;
-                    currentRotationX += (lm[0].y - 0.5) * 0.05;
+                    curRotY += (lm[0].x - 0.5) * 0.08;
+                    curRotX += (lm[0].y - 0.5) * 0.08;
 
-                    const isOK = dist(4, 8) < 0.05 && lm[12].y < lm[10].y;
+                    const d = (a, b) => Math.hypot(lm[a].x-lm[b].x, lm[a].y-lm[b].y);
+                    const isOK = d(4, 8) < 0.06 && lm[12].y < lm[10].y;
                     if(isOK) {
-                        label.innerText = "切换中...";
-                        if(!okGestureStartTime) okGestureStartTime = Date.now();
-                        const p = Math.min(100, ((Date.now()-okGestureStartTime)/1500)*100);
-                        okBar.style.width = p + "%"; okCircle.style.strokeDashoffset = 100-p;
-                        if(p>=100) { reconstructModel((activeModelIndex+1)%models.length); okGestureStartTime=null; }
-                    } else { okGestureStartTime=null; okBar.style.width="0%"; okCircle.style.strokeDashoffset=100; label.innerText="手势已连接"; }
-                } else { dot.className="w-2 h-2 rounded-full bg-red-600"; label.innerText="等待手势..."; }
+                        if(!okStart) okStart = Date.now();
+                        const p = Math.min(100, ((Date.now()-okStart)/1500)*100);
+                        bar.style.width = p + "%";
+                        if(p>=100) { 
+                            if(models.length) reconstruct((activeIndex + 1) % models.length); 
+                            okStart = null; 
+                        }
+                    } else { okStart = null; bar.style.width = "0%"; }
+                } else {
+                    dot.className = "w-2 h-2 rounded-full bg-red-600";
+                    lbl.innerText = "Searching Hand";
+                }
             });
-            const cam = new Camera(video, { onFrame: async () => await hands.send({image:video}), width:320, height:240 });
-            cam.start();
+
+            const camera = new Camera(video, { onFrame: async () => await hands.send({image: video}), width: 480, height: 320 });
+            camera.start().catch(() => {
+                document.getElementById('gesture-name').innerText = "Camera Denied";
+            });
         }
 
         function toggleSidebar(s) { document.getElementById('sidebar').style.transform = s ? 'translateX(0)' : 'translateX(-100%)'; }
+        
         window.onload = initApp;
     </script>
 </body>
